@@ -11,7 +11,6 @@ archivesBaseName = 'cartographer'
 
 dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: guava_version
-    implementation group: 'com.google.code.gson', name: 'gson', version: gson_version
     implementation group: 'it.unimi.dsi', name: 'fastutil', version: fastutil_version
 
     testImplementation group: 'junit', name: 'junit', version: junit_version
