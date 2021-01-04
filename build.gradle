@@ -1,0 +1,40 @@
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+group = 'sciwhiz12.cartographer'
+archivesBaseName = 'cartographer'
+
+dependencies {
+    implementation group: 'com.google.guava', name: 'guava', version: guava_version
+    implementation group: 'com.google.code.gson', name: 'gson', version: gson_version
+    implementation group: 'it.unimi.dsi', name: 'fastutil', version: fastutil_version
+
+    testImplementation group: 'junit', name: 'junit', version: junit_version
+}
+
+application {
+    mainClassName = 'sciwhiz12.cartographer.Main'
+    applicationDefaultJvmArgs += ["--enable-preview"]
+}
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = 15
+
+compileJava {
+    options.compilerArgs += '--enable-preview'
+}
+
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
+
+run {
+    standardInput = System.in
+
+    File runningDir = file('run/')
+    runningDir.mkdirs()
+    workingDir = runningDir
+}
