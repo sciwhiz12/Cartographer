@@ -1,15 +1,22 @@
 package sciwhiz12.cartographer;
 
+import com.google.common.base.Stopwatch;
 import sciwhiz12.cartographer.mcp.MCPDatabase;
 import sciwhiz12.cartographer.mcp.MCPEntry;
 import sciwhiz12.cartographer.srg.SRGDatabase;
+import sciwhiz12.cartographer.srg.SRGDatabaseDebuggingWriter;
 import sciwhiz12.cartographer.srg.SRGEntry;
 import sciwhiz12.cartographer.util.AccessTransformers;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
 public class QueryConsole implements Runnable {
     private final SRGDatabase srgDatabase;
@@ -32,11 +39,22 @@ public class QueryConsole implements Runnable {
                 String line = input.nextLine();
                 List<String> splits = Arrays.asList(line.split(" "));
                 switch (splits.get(0)) {
-                    case "close":
-                    case "stop":
-                    case "quit":
+                    case "close", "stop", "quit" -> {
                         break loop;
-                    case "id": {
+                    }
+                    case "debug_export" -> {
+                        if (splits.size() < 2) {
+                            System.out.println("Please specify an output file for the debug SRG export.");
+                        } else {
+                            Path output = Path.of(splits.get(1));
+                            System.out.printf("Writing debug SRG export to %s...%n", output);
+                            Stopwatch stopwatch = Stopwatch.createStarted();
+                            Files.write(output, SRGDatabaseDebuggingWriter.write(srgDatabase), CREATE, TRUNCATE_EXISTING);
+                            stopwatch.stop();
+                            System.out.printf("Time elapsed for debug export: %s%n", stopwatch.elapsed());
+                        }
+                    }
+                    case "id" -> {
                         int id = Integer.parseInt(splits.get(1));
                         final SRGEntry srgEntry = srgDatabase.getEntryForID(id);
                         if (srgEntry != null) {
@@ -52,18 +70,11 @@ public class QueryConsole implements Runnable {
                                 System.out.printf("   Access Transformer: %s%n", at);
                         } else
                             System.out.println("No entry found for that ID!");
-                        break;
                     }
-                    case "class": {
-
-                        break;
-                    }
-                    default:
-                        System.out.println("Unknown command.");
+                    default -> System.out.println("Unknown command.");
                 }
                 System.out.println();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 System.err.println("Error while parsing input from console: " + e);
             }
         }
