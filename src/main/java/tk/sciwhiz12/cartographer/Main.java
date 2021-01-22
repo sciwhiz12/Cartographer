@@ -1,8 +1,8 @@
-package sciwhiz12.cartographer;
+package tk.sciwhiz12.cartographer;
 
 import com.google.common.base.Stopwatch;
-import sciwhiz12.cartographer.mcp.MCPDatabase;
-import sciwhiz12.cartographer.srg.SRGDatabase;
+import tk.sciwhiz12.cartographer.mcp.MCPDatabase;
+import tk.sciwhiz12.cartographer.srg.SRGDatabase;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +10,7 @@ import java.util.List;
 
 import static java.nio.file.Path.of;
 import static java.nio.file.StandardOpenOption.CREATE;
-import static sciwhiz12.cartographer.util.Logging.logf;
+import static tk.sciwhiz12.cartographer.util.Logging.logf;
 
 public class Main {
 

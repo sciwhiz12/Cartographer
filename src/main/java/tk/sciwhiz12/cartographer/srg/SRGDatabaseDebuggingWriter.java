@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.srg;
+package tk.sciwhiz12.cartographer.srg;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.mcp;
+package tk.sciwhiz12.cartographer.mcp;
 
 public interface MCPEntry {
 

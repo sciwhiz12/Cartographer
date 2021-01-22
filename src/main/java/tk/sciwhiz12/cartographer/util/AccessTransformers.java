@@ -1,7 +1,7 @@
-package sciwhiz12.cartographer.util;
+package tk.sciwhiz12.cartographer.util;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import sciwhiz12.cartographer.srg.SRGEntry;
+import tk.sciwhiz12.cartographer.srg.SRGEntry;
 
 public class AccessTransformers {
     private AccessTransformers() {}

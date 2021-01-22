@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.util;
+package tk.sciwhiz12.cartographer.util;
 
 import java.util.regex.Pattern;
 

@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.srg;
+package tk.sciwhiz12.cartographer.srg;
 
 public interface SRGEntry {
     interface HasID extends SRGEntry {

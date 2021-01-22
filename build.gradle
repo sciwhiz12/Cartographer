@@ -6,7 +6,7 @@ repositories {
 apply plugin: 'java'
 apply plugin: 'application'
 
-group = 'sciwhiz12.cartographer'
+group = 'tk.sciwhiz12'
 archivesBaseName = 'cartographer'
 
 dependencies {
@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'sciwhiz12.cartographer.Main'
+    mainClassName = 'tk.sciwhiz12.cartographer.Main'
     applicationDefaultJvmArgs += ["--enable-preview"]
 }
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = 15

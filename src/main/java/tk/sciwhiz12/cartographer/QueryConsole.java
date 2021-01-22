@@ -1,12 +1,12 @@
-package sciwhiz12.cartographer;
+package tk.sciwhiz12.cartographer;
 
 import com.google.common.base.Stopwatch;
-import sciwhiz12.cartographer.mcp.MCPDatabase;
-import sciwhiz12.cartographer.mcp.MCPEntry;
-import sciwhiz12.cartographer.srg.SRGDatabase;
-import sciwhiz12.cartographer.srg.SRGDatabaseDebuggingWriter;
-import sciwhiz12.cartographer.srg.SRGEntry;
-import sciwhiz12.cartographer.util.AccessTransformers;
+import tk.sciwhiz12.cartographer.mcp.MCPDatabase;
+import tk.sciwhiz12.cartographer.mcp.MCPEntry;
+import tk.sciwhiz12.cartographer.srg.SRGDatabase;
+import tk.sciwhiz12.cartographer.srg.SRGDatabaseDebuggingWriter;
+import tk.sciwhiz12.cartographer.srg.SRGEntry;
+import tk.sciwhiz12.cartographer.util.AccessTransformers;
 
 import java.io.InputStream;
 import java.nio.file.Files;

@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.mcp;
+package tk.sciwhiz12.cartographer.mcp;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;

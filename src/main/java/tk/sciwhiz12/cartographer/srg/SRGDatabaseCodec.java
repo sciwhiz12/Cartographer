@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.srg;
+package tk.sciwhiz12.cartographer.srg;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -18,7 +18,7 @@ import static java.lang.Integer.parseInt;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collector.Characteristics.CONCURRENT;
 import static java.util.stream.Collector.Characteristics.UNORDERED;
-import static sciwhiz12.cartographer.srg.SRGDatabaseCodec.CodecConstants.*;
+import static tk.sciwhiz12.cartographer.srg.SRGDatabaseCodec.CodecConstants.*;
 
 class SRGDatabaseCodec {
     @VisibleForTesting

@@ -1,4 +1,4 @@
-package sciwhiz12.cartographer.srg;
+package tk.sciwhiz12.cartographer.srg;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 
-import static sciwhiz12.cartographer.srg.SRGEntry.*;
+import static tk.sciwhiz12.cartographer.srg.SRGEntry.*;
 
 public record SRGDatabase(
         ImmutableMap<String, SRGEntry.Class> classes, // SRG FQ Class Name -> Class (guaranteed to be unique)
