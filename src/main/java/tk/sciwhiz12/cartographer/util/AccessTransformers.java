@@ -16,13 +16,13 @@ public class AccessTransformers {
             return "public %s %s".formatted(field.parentClass().srgName().replace('/', '.'), field.srgName()) + mcpName;
         } else if (entry instanceof SRGEntry.NamedMethod method) {
             return "public %s %s%s"
-                    .formatted(method.parentClass().srgName().replace('/', '.'), method.deobfName(), method.methodSignature());
+                .formatted(method.parentClass().srgName().replace('/', '.'), method.deobfName(), method.methodSignature());
         } else if (entry instanceof SRGEntry.NumberedMethod method) {
             return "public %s %s%s".formatted(method.parentClass().srgName().replace('/', '.'), method.srgName(),
-                    method.methodSignature()) + mcpName;
+                method.methodSignature()) + mcpName;
         } else if (entry instanceof SRGEntry.Constructor constructor) {
             return "public %s <init>%s"
-                    .formatted(constructor.parentClass().srgName().replace('/', '.'), constructor.methodSignature());
+                .formatted(constructor.parentClass().srgName().replace('/', '.'), constructor.methodSignature());
         }
         return null;
     }

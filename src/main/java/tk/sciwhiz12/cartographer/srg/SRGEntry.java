@@ -22,14 +22,14 @@ public interface SRGEntry {
     record EnumValue(String valueName, String reobfName, Class parentClass) implements ClassMember {}
 
     record Field(int srgID, String srgName, String reobfName, Class parentClass)
-            implements HasID, ClassMember, HasSrgName {}
+        implements HasID, ClassMember, HasSrgName {}
 
     record NamedMethod(String deobfName, String reobfName, Class parentClass, String methodSignature)
-            implements Method {}
+        implements Method {}
 
     record NumberedMethod(int srgID, String srgName, String reobfName, Class parentClass, String methodSignature,
                           boolean isStatic)
-            implements HasID, Method, HasSrgName {}
+        implements HasID, Method, HasSrgName {}
 
     record Constructor(int srgID, Class parentClass, String methodSignature) implements HasID, Method {}
 

@@ -24,34 +24,35 @@ class MCPParser {
         final Map<Integer, MCPEntry.Field> fields = Collections.synchronizedMap(new Object2ObjectArrayMap<>(5000));
         final Map<Integer, MCPEntry.Method> methods = Collections.synchronizedMap(new Object2ObjectArrayMap<>(5000));
         final Multimap<Integer, MCPEntry.Parameter> params = Multimaps.synchronizedMultimap(
-                MultimapBuilder.hashKeys(5000).arrayListValues(4).build());
+            MultimapBuilder.hashKeys(5000).arrayListValues(4).build());
 
         fieldsLines.parallelStream()
-                .filter(str -> !str.startsWith("searge"))
-                .map(CSV::matcher)
-                .filter(Matcher::matches)
-                .map(matcher -> new MCPEntry.Field(parseInt(matcher.group(1)), matcher.group(2), MCPEntry.Side.of(matcher.group(3)),
-                        matcher.group(4)))
-                .forEach(field -> fields.put(field.srgID(), field));
+            .filter(str -> !str.startsWith("searge"))
+            .map(CSV::matcher)
+            .filter(Matcher::matches)
+            .map(matcher -> new MCPEntry.Field(parseInt(matcher.group(1)), matcher.group(2), MCPEntry.Side.of(matcher.group(3)),
+                matcher.group(4)))
+            .forEach(field -> fields.put(field.srgID(), field));
 
         methodsLines.parallelStream()
-                .filter(str -> !str.startsWith("searge"))
-                .map(CSV::matcher)
-                .filter(Matcher::matches)
-                .map(matcher -> new MCPEntry.Method(parseInt(matcher.group(1)), matcher.group(2), MCPEntry.Side.of(matcher.group(3)),
-                        matcher.group(4)))
-                .forEach(method -> methods.put(method.srgID(), method));
+            .filter(str -> !str.startsWith("searge"))
+            .map(CSV::matcher)
+            .filter(Matcher::matches)
+            .map(
+                matcher -> new MCPEntry.Method(parseInt(matcher.group(1)), matcher.group(2), MCPEntry.Side.of(matcher.group(3)),
+                    matcher.group(4)))
+            .forEach(method -> methods.put(method.srgID(), method));
 
         paramsLines.parallelStream()
-                .filter(str -> !str.startsWith("param"))
-                .map(PARAM_CSV::matcher)
-                .filter(Matcher::matches)
-                .map(matcher -> matcher.group(1).isBlank() ?
-                        new MCPEntry.MethodParameter(parseInt(matcher.group(2)), parseInt(matcher.group(3)),
-                                matcher.group(4), MCPEntry.Side.of(matcher.group(5))) :
-                        new MCPEntry.ConstructorParameter(parseInt(matcher.group(2)), parseInt(matcher.group(3)),
-                                matcher.group(4), MCPEntry.Side.of(matcher.group(5))))
-                .forEach(param -> params.put(param.methodSrgID(), param));
+            .filter(str -> !str.startsWith("param"))
+            .map(PARAM_CSV::matcher)
+            .filter(Matcher::matches)
+            .map(matcher -> matcher.group(1).isBlank() ?
+                new MCPEntry.MethodParameter(parseInt(matcher.group(2)), parseInt(matcher.group(3)),
+                    matcher.group(4), MCPEntry.Side.of(matcher.group(5))) :
+                new MCPEntry.ConstructorParameter(parseInt(matcher.group(2)), parseInt(matcher.group(3)),
+                    matcher.group(4), MCPEntry.Side.of(matcher.group(5))))
+            .forEach(param -> params.put(param.methodSrgID(), param));
 
         logf(" === MCP Import === %n");
         logf("Fields: %d%n", fields.size());
@@ -60,9 +61,9 @@ class MCPParser {
         logf(" === === == === === %n");
 
         return new MCPDatabase(
-                ImmutableMap.copyOf(fields),
-                ImmutableMap.copyOf(methods),
-                ImmutableMultimap.copyOf(params)
+            ImmutableMap.copyOf(fields),
+            ImmutableMap.copyOf(methods),
+            ImmutableMultimap.copyOf(params)
         );
     }
 }

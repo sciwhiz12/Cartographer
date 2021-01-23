@@ -1,11 +1,15 @@
 package tk.sciwhiz12.cartographer.srg;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
@@ -26,8 +30,8 @@ import static tk.sciwhiz12.cartographer.util.Patterns.*;
 
 class SRGParser {
     static final ImmutableMap<Character, Integer> charMap = ImmutableMap.<Character, Integer>builder()
-            .put('B', 1).put('C', 1).put('F', 1).put('S', 1).put('Z', 1).put('I', 1).put('L', 1)
-            .put('D', 2).put('J', 2).build();
+        .put('B', 1).put('C', 1).put('F', 1).put('S', 1).put('Z', 1).put('I', 1).put('L', 1)
+        .put('D', 2).put('J', 2).build();
 
     private SRGParser() {}
 
@@ -37,7 +41,7 @@ class SRGParser {
         Map<String, SRGEntry.Class> classes = new Object2ObjectArrayMap<>(5000);
         Int2ObjectMap<SRGEntry.Field> fields = new Int2ObjectArrayMap<>(5000);
         Multimap<SRGEntry.Class, SRGEntry.EnumValue> enumValues = MultimapBuilder.hashKeys(5000).arrayListValues(4).build();
-        Map<Integer, SRGEntry.NumberedMethod> numbered = new Int2ObjectArrayMap<>(5000);
+        Table<Integer, SRGEntry.Class, SRGEntry.NumberedMethod> numbered = HashBasedTable.create(5000, 1000);
         Multimap<String, SRGEntry.NamedMethod> named = MultimapBuilder.hashKeys(5000).arrayListValues(2).build();
 
         int errCount = 0;
@@ -81,9 +85,9 @@ class SRGParser {
                 int srgID = parseInt(numberedMatcher.group("id"));
                 boolean isStatic = staticList.contains(srgID);
                 SRGEntry.NumberedMethod method = new SRGEntry.NumberedMethod(srgID, originalSrgName, reobfName, lastKnownClass,
-                        methodSignature, isStatic);
+                    methodSignature, isStatic);
                 debugf("L%d - Numbered method: %s%n", lineNum + 1, method);
-                numbered.put(srgID, method);
+                numbered.put(srgID, lastKnownClass, method);
                 continue;
             }
             Matcher namedMatcher = TSRG_NAMED_METHOD.matcher(line); // Named method matching
@@ -92,7 +96,7 @@ class SRGParser {
                 String methodSignature = namedMatcher.group("signature");
                 String deobfName = namedMatcher.group("deobf");
                 SRGEntry.NamedMethod method = new SRGEntry.NamedMethod(deobfName, reobfName, lastKnownClass,
-                        methodSignature);
+                    methodSignature);
                 debugf("L%d - Named method: %s%n", lineNum + 1, method);
                 named.put(deobfName, method);
                 continue;
@@ -103,42 +107,46 @@ class SRGParser {
 
         final Int2ObjectMap<SRGEntry.Constructor> constructors = parseConstructors(classes, constructorsLines);
         final ImmutableMap<String, SRGEntry.Class> reobfClassesMap = Maps
-                .uniqueIndex(classes.values(), SRGEntry.Class::reobfName);
-        numbered = ImmutableMap.copyOf(Maps.transformValues(numbered, obfSignaturesTransformer(
-                reobfClassesMap,
-                (orig, newSig) -> new SRGEntry.NumberedMethod(
-                        orig.srgID(),
-                        orig.srgName(),
-                        orig.reobfName(),
-                        orig.parentClass(),
-                        newSig,
-                        orig.isStatic())
-                )
+            .uniqueIndex(classes.values(), SRGEntry.Class::reobfName);
+
+        //noinspection UnstableApiUsage
+        numbered = ImmutableTable.copyOf(Tables.transformValues(numbered, obfSignaturesTransformer(
+            reobfClassesMap,
+            (orig, newSig) -> new SRGEntry.NumberedMethod(
+                orig.srgID(),
+                orig.srgName(),
+                orig.reobfName(),
+                orig.parentClass(),
+                newSig,
+                orig.isStatic())
+            )
         ));
+
         named = ImmutableMultimap.copyOf(Multimaps.transformValues(named, obfSignaturesTransformer(
-                reobfClassesMap,
-                (orig, newSig) -> new SRGEntry.NamedMethod(
-                        orig.deobfName(),
-                        orig.reobfName(),
-                        orig.parentClass(),
-                        newSig)
-                )
+            reobfClassesMap,
+            (orig, newSig) -> new SRGEntry.NamedMethod(
+                orig.deobfName(),
+                orig.reobfName(),
+                orig.parentClass(),
+                newSig)
+            )
         ));
 
         final Multimap<SRGEntry.NumberedMethod, SRGEntry.MethodParameter> numberedParams = createParameters(numbered.values());
         final Multimap<SRGEntry.NamedMethod, SRGEntry.MethodParameter> namedParams = createParameters(named.values());
-        final Multimap<SRGEntry.Constructor, SRGEntry.MethodParameter> constructorParams = createParameters(constructors.values());
+        final Multimap<SRGEntry.Constructor, SRGEntry.MethodParameter> constructorParams = createParameters(
+            constructors.values());
 
         final SRGDatabase srgDatabase = new SRGDatabase(
-                ImmutableMap.copyOf(classes),
-                ImmutableMap.copyOf(fields),
-                ImmutableMultimap.copyOf(enumValues),
-                ImmutableMap.copyOf(numbered),
-                ImmutableMultimap.copyOf(named),
-                ImmutableMap.copyOf(constructors),
-                ImmutableMultimap.copyOf(numberedParams),
-                ImmutableMultimap.copyOf(namedParams),
-                ImmutableMultimap.copyOf(constructorParams));
+            ImmutableMap.copyOf(classes),
+            ImmutableMap.copyOf(fields),
+            ImmutableMultimap.copyOf(enumValues),
+            ImmutableTable.copyOf(numbered),
+            ImmutableMultimap.copyOf(named),
+            ImmutableMap.copyOf(constructors),
+            ImmutableMultimap.copyOf(numberedParams),
+            ImmutableMultimap.copyOf(namedParams),
+            ImmutableMultimap.copyOf(constructorParams));
 
         logf(" === SRG Import === %n");
         srgDatabase.printStatistics(System.out);
@@ -150,8 +158,8 @@ class SRGParser {
 
     @SuppressWarnings("Guava")
     static <M extends SRGEntry.Method> com.google.common.base.Function<M, M> obfSignaturesTransformer(
-            final Map<String, SRGEntry.Class> classes,
-            final SignatureModifier<M> modifier
+        final Map<String, SRGEntry.Class> classes,
+        final SignatureModifier<M> modifier
     ) {
         return method -> {
             if (method == null) return null;
@@ -185,12 +193,12 @@ class SRGParser {
             // See JVM Spec section 4.3.3 for details of the parameter index/units
             AtomicInteger index = new AtomicInteger(isStatic ? 0 : 1);
             descriptor
-                    .results()
-                    .map(match -> match.group(1))
-                    .map(str -> str.charAt(0))
-                    .filter(charMap::containsKey)
-                    .mapToInt(charMap::get)
-                    .forEach(unit -> parameters.put(method, new SRGEntry.MethodParameter(method, index.getAndAdd(unit))));
+                .results()
+                .map(match -> match.group(1))
+                .map(str -> str.charAt(0))
+                .filter(charMap::containsKey)
+                .mapToInt(charMap::get)
+                .forEach(unit -> parameters.put(method, new SRGEntry.MethodParameter(method, index.getAndAdd(unit))));
         }
         return parameters.build();
     }
@@ -215,17 +223,17 @@ class SRGParser {
     }
 
     static Int2ObjectMap<SRGEntry.Constructor> parseConstructors(Map<String, SRGEntry.Class> classes,
-            List<String> lines) {
+        List<String> lines) {
         Int2ObjectMap<SRGEntry.Constructor> constructors = Int2ObjectMaps.synchronize(new Int2ObjectArrayMap<>(1000));
 
         lines.parallelStream()
-                .map(CONSTRUCTOR_ENTRY::matcher)
-                .filter(Matcher::matches)
-                .filter(matcher -> classes.containsKey(matcher.group("class")))
-                .map(lineMatch -> new SRGEntry.Constructor(parseInt(lineMatch.group("id")),
-                        classes.get(lineMatch.group("class")),
-                        lineMatch.group("signature")))
-                .forEach(constructor -> constructors.put(constructor.srgID(), constructor));
+            .map(CONSTRUCTOR_ENTRY::matcher)
+            .filter(Matcher::matches)
+            .filter(matcher -> classes.containsKey(matcher.group("class")))
+            .map(lineMatch -> new SRGEntry.Constructor(parseInt(lineMatch.group("id")),
+                classes.get(lineMatch.group("class")),
+                lineMatch.group("signature")))
+            .forEach(constructor -> constructors.put(constructor.srgID(), constructor));
 
         logf("Found %d valid constructors%n", constructors.size());
         return constructors;

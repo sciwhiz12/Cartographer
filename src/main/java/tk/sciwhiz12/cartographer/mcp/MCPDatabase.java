@@ -9,9 +9,9 @@ import java.util.Collections;
 import java.util.List;
 
 public record MCPDatabase(
-        ImmutableMap<Integer, MCPEntry.Field> fields,
-        ImmutableMap<Integer, MCPEntry.Method> methods,
-        ImmutableMultimap<Integer, MCPEntry.Parameter> parameters
+    ImmutableMap<Integer, MCPEntry.Field> fields,
+    ImmutableMap<Integer, MCPEntry.Method> methods,
+    ImmutableMultimap<Integer, MCPEntry.Parameter> parameters
 ) {
     public static MCPDatabase parse(List<String> fieldsLines, List<String> methodsLines, List<String> paramsLines) {
         return MCPParser.read(fieldsLines, methodsLines, paramsLines);

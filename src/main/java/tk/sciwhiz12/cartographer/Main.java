@@ -105,7 +105,7 @@ public class Main {
         }
 
         return classes && fields && enumValues
-                && namedMethods && numberedMethods && constructors
-                && namedMethodParameters && numberedMethodParameters && constructorParameters;
+            && namedMethods && numberedMethods && constructors
+            && namedMethodParameters && numberedMethodParameters && constructorParameters;
     }
 }
