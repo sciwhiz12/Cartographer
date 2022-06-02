@@ -4,10 +4,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimaps;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Stream.of;
 
 @VisibleForTesting
 public class SRGDatabaseDebuggingWriter {
@@ -21,69 +25,98 @@ public class SRGDatabaseDebuggingWriter {
     static final String CONSTRUCTOR_WRITER = "constructor: id = %d, signature = %s";
     static final String METHOD_PARAMETER_WRITER = "params: indexes = %s";
 
+    private static BinaryOperator<String> joiningStringReduction() {
+        return (a, b) -> {
+            if (a.isEmpty() && !b.isEmpty()) return b;
+            if (b.isEmpty() && !a.isEmpty()) return a;
+            return a + ", " + b;
+        };
+    }
+
     @VisibleForTesting
     public static List<String> write(SRGDatabase db) {
-        @SuppressWarnings("UnstableApiUsage")
-        ImmutableList.Builder<String> output = ImmutableList.builderWithExpectedSize(50000);
-
         final var classToFields = Multimaps
-            .index(db.fields().values(), SRGEntry.ClassMember::parentClass);
+                .index(db.fields().values(), SRGEntry.ClassMember::parentClass);
         final var classToNamedMethods = Multimaps
-            .index(db.namedMethods().values(), SRGEntry.ClassMember::parentClass);
+                .index(db.namedMethods().values(), SRGEntry.ClassMember::parentClass);
         final var classToNumberedMethods = Multimaps
-            .index(db.numberedMethods().values(), SRGEntry.ClassMember::parentClass);
+                .index(db.numberedMethods().values(), SRGEntry.ClassMember::parentClass);
         final var classToConstructors = Multimaps
-            .index(db.constructors().values(), SRGEntry.ClassMember::parentClass);
+                .index(db.constructors().values(), SRGEntry.ClassMember::parentClass);
 
-        db.classes().forEach((className, classEntry) -> {
-            output.add(format(CLASS_WRITER, classEntry.srgName(), classEntry.reobfName()));
-            classToFields
-                .get(classEntry)
-                .forEach(field -> output.add(INDENTATION.repeat(1) + format(FIELD_WRITER, field.srgID(), field.srgName(),
-                    field.reobfName())));
-            db.enumValues()
-                .get(classEntry)
-                .forEach(enumVal -> output
-                    .add(INDENTATION.repeat(1) + format(ENUM_WRITER, enumVal.valueName(), enumVal.reobfName())));
-            classToNumberedMethods
-                .get(classEntry)
-                .forEach(method -> {
-                    output.add(INDENTATION.repeat(1) + format(NUMBERED_METHOD_WRITER, method.srgID(),
-                        method.reobfName(), method.srgName(), method.methodSignature(),
-                        method.isStatic()));
-                    final String params = db.numberedMethodParameters().get(method).stream()
-                        .map(SRGEntry.MethodParameter::index)
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
-                    if (!params.isEmpty())
-                        output.add(INDENTATION.repeat(2) + format(METHOD_PARAMETER_WRITER, params));
-                });
-            classToNamedMethods
-                .get(classEntry)
-                .forEach(method -> {
-                    output.add(INDENTATION.repeat(1) + format(NAMED_METHOD_WRITER, method.deobfName(), method.reobfName(),
-                        method.methodSignature()));
-                    final String params = db.namedMethodParameters().get(method).stream()
-                        .map(SRGEntry.MethodParameter::index)
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
-                    if (!params.isEmpty())
-                        output.add(INDENTATION.repeat(2) + format(METHOD_PARAMETER_WRITER, params));
-                });
-            classToConstructors
-                .get(classEntry)
-                .forEach(constructor -> {
-                    output.add(INDENTATION.repeat(1) + format(CONSTRUCTOR_WRITER, constructor.srgID(),
-                        constructor.methodSignature()));
-                    final String params = db.constructorParameters().get(constructor).stream()
-                        .map(SRGEntry.MethodParameter::index)
-                        .map(Object::toString)
-                        .collect(Collectors.joining(", "));
-                    if (!params.isEmpty())
-                        output.add(INDENTATION.repeat(2) + format(METHOD_PARAMETER_WRITER, params));
-                });
-        });
+        final Iterator<String> lines = db.classes().values().stream()
+                .flatMap(classEntry -> stream(
 
-        return output.build();
+                        of(format(CLASS_WRITER, classEntry.srgName(), classEntry.reobfName())),
+
+                        classToFields.get(classEntry).stream()
+                                .map(field -> indent(1)
+                                        + format(FIELD_WRITER, field.srgID(), field.srgName(), field.reobfName())),
+
+                        db.enumValues().get(classEntry).stream()
+                                .map(enumVal -> indent(1)
+                                        + format(ENUM_WRITER, enumVal.valueName(), enumVal.reobfName())),
+
+                        classToNumberedMethods.get(classEntry).stream()
+                                .flatMap(method -> stream(
+
+                                        of(indent(1)
+                                                + format(NUMBERED_METHOD_WRITER, method.srgID(), method.reobfName(),
+                                                method.srgName(), method.methodSignature(), method.isStatic())),
+
+                                        db.numberedMethodParameters().get(method).stream()
+                                                .mapToInt(SRGEntry.MethodParameter::index)
+                                                .mapToObj(Integer::toString)
+                                                .reduce(joiningStringReduction())
+                                                .map(params -> indent(2)
+                                                        + format(METHOD_PARAMETER_WRITER, params))
+                                                .stream()
+                                )),
+
+                        classToNamedMethods.get(classEntry).stream()
+                                .flatMap(method -> stream(
+
+                                        of(indent(1)
+                                                + format(NAMED_METHOD_WRITER, method.deobfName(), method.reobfName(),
+                                                method.methodSignature())),
+
+                                        db.namedMethodParameters().get(method).stream()
+                                                .mapToInt(SRGEntry.MethodParameter::index)
+                                                .mapToObj(Integer::toString)
+                                                .reduce(joiningStringReduction())
+                                                .map(params -> indent(2)
+                                                        + format(METHOD_PARAMETER_WRITER, params))
+                                                .stream()
+                                )),
+
+                        classToConstructors.get(classEntry).stream()
+                                .flatMap(constructor -> stream(
+
+                                        of(indent(1)
+                                                + format(CONSTRUCTOR_WRITER, constructor.srgID(),
+                                                constructor.methodSignature())),
+
+                                        db.constructorParameters().get(constructor).stream()
+                                                .mapToInt(SRGEntry.MethodParameter::index)
+                                                .mapToObj(Integer::toString)
+                                                .reduce(joiningStringReduction())
+                                                .map(params -> indent(2)
+                                                        + format(METHOD_PARAMETER_WRITER, params))
+                                                .stream()
+                                ))
+                ))
+                .iterator();
+
+        //noinspection UnstableApiUsage
+        return ImmutableList.<String>builderWithExpectedSize(100000).addAll(lines).build();
+    }
+
+    @SafeVarargs
+    private static <I> Stream<I> stream(Stream<? extends I>... streams) {
+        return of(streams).flatMap(Function.identity());
+    }
+
+    private static String indent(int count) {
+        return INDENTATION.repeat(count);
     }
 }
