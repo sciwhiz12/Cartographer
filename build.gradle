@@ -18,17 +18,9 @@ dependencies {
 
 application {
     mainClassName = 'tk.sciwhiz12.cartographer.Main'
-    applicationDefaultJvmArgs += ["--enable-preview"]
-}
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = 15
-
-compileJava {
-    options.compilerArgs += '--enable-preview'
 }
 
-tasks.withType(Test) {
-    jvmArgs += "--enable-preview"
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 run {
     standardInput = System.in
